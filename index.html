@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oceanside Boat Shop</title>
+  <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css"
+    />
+  <style>
+    body {
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <h1>Oceanside Boat Shop</h1>
+    <form id="marinaForm">
+    <main class="container">
+      <h3> Customer Info:</h3>
+      <label for="customerName">Customer's Name</label>
+      <input type="text" id="customerName" name="customerName" required>
+
+      <label for="boatLic">License #</label>
+      <input type="text" id="boatLic" name="boatLic" required>
+
+      <label for="boatMakeModel">Boat Make/Model</label>
+      <input type="text" id="boatMakeModel" name="boatMakeModel" required>
+    </main>
+
+    <div class="grid">
+        <div>
+            <h3> Paint:</h3>
+
+            <input type="checkbox" role="switch" id="primaryRespray" name="primaryRespray" value="1100" onclick="updateTotal()">
+            <label for="primaryRespray">Primary Respray ($1,100)</label>
+            <br/>
+
+            <input type="checkbox" role="switch" id="secondaryRespray" name="secondaryRespray" value="1100" onclick="updateTotal()">
+            <label for="secondaryRespray">Secondary Respray ($1,100)</label>
+            <br/>
+
+            <input type="checkbox" role="switch" id="pearlescentRespray" name="pearlescentRespray" value="1100" onclick="updateTotal()">
+            <label for="pearlescentRespray">Pearlescent Respray ($1,100)</label>
+            <br/>
+
+            <input type="checkbox" role="switch" id="interiorRespray" name="interiorRespray" value="1100" onclick="updateTotal()">
+            <label for="interiorRespray">Interior Respray ($1,100)</label>
+            <br/>
+
+            <input type="checkbox" role="switch" id="dashboardColor" name="dashboardColor" value="1100" onclick="updateTotal()">
+            <label for="dashboardColor">Dashboard Color ($1,100)</label>
+        </div>
+   
+
+        <div>
+            <h3> Performance:</h3>
+
+            <input type="checkbox" role="switch" id="turbo" name="turbo" value="11000" onclick="updateTotal()">
+            <label for="turbo">Turbo ($11,000)</label>
+        </div>
+
+        <div>
+          <h3> Cost:</h3>
+
+          <label for="totalCost">Total Cost</label>
+          <input type="text" id="totalCost" name="totalCost" readonly>
+
+          <button type="button" onclick="copyToClipboard()">Copy To Clipboard</button>
+          <button type="reset" onclick="clearTotal()">Clear All</button>
+        </div>
+    </form>
+  </main>
+
+  <script>
+    function updateTotal() {
+      const form = document.getElementById("marinaForm");
+      let total = 0;
+
+      for (const element of form.elements) {
+        if (element.type === "checkbox" && element.checked) {
+          total += parseFloat(element.value);
+        }
+      }
+
+      document.getElementById("totalCost").value = `$${total.toFixed(2)}`;
+    }
+
+    function copyToClipboard() {
+      const form = document.getElementById("marinaForm");
+      let formData = "```";  // Start with triple backticks for Discord formatting
+      let total = 0;
+      let selectedUpgrades = [];
+
+      // Get selected upgrades and calculate total
+      for (const element of form.elements) {
+        if (element.type === "checkbox" && element.checked) {
+          selectedUpgrades.push(element.labels[0].textContent.split(" ($")[0]);  // Add upgrade name only
+          total += parseFloat(element.value);
+        }
+      }
+
+      // Get customer details
+      const customerName = form.customerName.value.trim();
+      const boatLic = form.boatLic.value.trim();
+      const boatMakeModel = form.boatMakeModel.value.trim();
+      const shopName = "Tuners";  // Static shop name as requested
+
+      // Format the copied text
+      formData += `Customer Name: ${customerName}\n`;
+      formData += `Vehicle | [Make/Model]: ${boatMakeModel}\n`;
+      formData += `Plate: ${boatLic}\n`;
+      formData += `Upgrades Purchased: ${selectedUpgrades.length > 0 ? selectedUpgrades.join(", ") : "None"}\n`;
+      formData += `Price Charged: $${total.toFixed(2)}\n`;
+      formData += `SHOP: Oceanside Boat Shop`;
+      formData += "```";  // End with triple backticks
+
+      navigator.clipboard.writeText(formData)
+    }
+
+    function clearTotal() {
+      document.getElementById("totalCost").value = "$0.00";
+    }
+  </script>
+
+</body>
+</html>
