@@ -18,6 +18,16 @@
     .service-list {
       margin-bottom: 1rem;
     }
+    .remove-btn {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .remove-btn:hover {
+      background-color: darkred;
+    }
   </style>
 </head>
 <body>
@@ -81,29 +91,77 @@
   </main>
 
   <script>
-    let selectedServices = [];  // Array to track all selected services
+    let selectedServices = [];  // Array to track selected services with counts
 
     function updateTotal(button) {
       const serviceName = button.getAttribute('data-service');
       const price = parseFloat(button.getAttribute('data-price'));
+
+      // Check if the service already exists in the selectedServices array
+      const existingService = selectedServices.find(service => service.name === serviceName);
       
-      // Add the service to the list of selected services
-      selectedServices.push(serviceName);
+      if (existingService) {
+        // If the service exists, increment the count
+        existingService.count += 1;
+      } else {
+        // If the service doesn't exist, add it to the array with a count of 1
+        selectedServices.push({ name: serviceName, price: price, count: 1 });
+      }
 
       // Update the services list in the UI
-      const serviceList = document.getElementById('serviceList');
-      const listItem = document.createElement('li');
-      listItem.textContent = `${serviceName} ($${price.toFixed(2)})`;
-      serviceList.appendChild(listItem);
+      updateServiceList();
 
       // Update the total cost
+      updateTotalCost();
+    }
+
+    function updateServiceList() {
+      const serviceList = document.getElementById('serviceList');
+      serviceList.innerHTML = '';  // Clear the list first
+
+      // Display each service with its count
+      selectedServices.forEach(service => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${service.name} (x${service.count})`;
+
+        // Add the "Remove" button next to the service
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.className = 'remove-btn';
+        removeButton.onclick = function () {
+          removeService(service);
+        };
+
+        listItem.appendChild(removeButton);
+        serviceList.appendChild(listItem);
+      });
+    }
+
+    function removeService(serviceToRemove) {
+      // Remove the service from the selectedServices array
+      const index = selectedServices.findIndex(service => service.name === serviceToRemove.name && service.price === serviceToRemove.price);
+      if (index !== -1) {
+        const service = selectedServices[index];
+
+        // If the count is greater than 1, just decrease the count
+        if (service.count > 1) {
+          service.count -= 1;
+        } else {
+          // If the count is 1, remove the service from the array
+          selectedServices.splice(index, 1);
+        }
+      }
+
+      // Update the services list and total
+      updateServiceList();
+      updateTotalCost();
+    }
+
+    function updateTotalCost() {
       let total = 0;
       selectedServices.forEach(service => {
-        const button = Array.from(document.querySelectorAll('.service-btn'))
-                             .find(btn => btn.getAttribute('data-service') === service);
-        total += parseFloat(button.getAttribute('data-price'));
+        total += service.price * service.count;  // Multiply price by count
       });
-
       document.getElementById("totalCost").value = `$${total.toFixed(2)}`;
     }
 
@@ -113,11 +171,10 @@
       let total = 0;
 
       // Get selected services and calculate total
-      const selectedUpgrades = selectedServices;
+      const selectedUpgrades = selectedServices.map(service => `${service.name} (x${service.count})`);
       selectedUpgrades.forEach(service => {
-        const button = Array.from(document.querySelectorAll('.service-btn'))
-                             .find(btn => btn.getAttribute('data-service') === service);
-        total += parseFloat(button.getAttribute('data-price'));
+        const item = selectedServices.find(serviceItem => `${serviceItem.name} (x${serviceItem.count})` === service);
+        total += item.price * item.count;
       });
 
       // Get customer details
