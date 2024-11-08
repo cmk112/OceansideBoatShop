@@ -12,6 +12,12 @@
     body {
       padding: 2rem;
     }
+    .service-btn {
+      margin: 5px;
+    }
+    .service-list {
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -19,7 +25,6 @@
   <main class="container">
     <h1>Oceanside Boat Shop</h1>
     <form id="marinaForm">
-    <main class="container">
       <h3> Customer Info:</h3>
       <label for="customerName">Customer's Name</label>
       <input type="text" id="customerName" name="customerName" required>
@@ -29,62 +34,75 @@
 
       <label for="boatMakeModel">Boat Make/Model</label>
       <input type="text" id="boatMakeModel" name="boatMakeModel" required>
-    </main>
 
-    <div class="grid">
+      <div class="grid">
         <div>
-            <h3> Paint:</h3>
+          <h3> Paint:</h3>
+          <button type="button" class="service-btn" data-service="Primary Respray" data-price="1100" onclick="updateTotal(this)">
+            Primary Respray ($1,100)
+          </button>
 
-            <input type="checkbox" role="switch" id="primaryRespray" name="primaryRespray" value="1100" onclick="updateTotal()">
-            <label for="primaryRespray">Primary Respray ($1,100)</label>
-            <br/>
+          <button type="button" class="service-btn" data-service="Secondary Respray" data-price="1100" onclick="updateTotal(this)">
+            Secondary Respray ($1,100)
+          </button>
 
-            <input type="checkbox" role="switch" id="secondaryRespray" name="secondaryRespray" value="1100" onclick="updateTotal()">
-            <label for="secondaryRespray">Secondary Respray ($1,100)</label>
-            <br/>
+          <button type="button" class="service-btn" data-service="Pearlescent Respray" data-price="1100" onclick="updateTotal(this)">
+            Pearlescent Respray ($1,100)
+          </button>
 
-            <input type="checkbox" role="switch" id="pearlescentRespray" name="pearlescentRespray" value="1100" onclick="updateTotal()">
-            <label for="pearlescentRespray">Pearlescent Respray ($1,100)</label>
-            <br/>
+          <button type="button" class="service-btn" data-service="Interior Respray" data-price="1100" onclick="updateTotal(this)">
+            Interior Respray ($1,100)
+          </button>
 
-            <input type="checkbox" role="switch" id="interiorRespray" name="interiorRespray" value="1100" onclick="updateTotal()">
-            <label for="interiorRespray">Interior Respray ($1,100)</label>
-            <br/>
-
-            <input type="checkbox" role="switch" id="dashboardColor" name="dashboardColor" value="1100" onclick="updateTotal()">
-            <label for="dashboardColor">Dashboard Color ($1,100)</label>
-        </div>
-   
-
-        <div>
-            <h3> Performance:</h3>
-
-            <input type="checkbox" role="switch" id="turbo" name="turbo" value="11000" onclick="updateTotal()">
-            <label for="turbo">Turbo ($11,000)</label>
+          <button type="button" class="service-btn" data-service="Dashboard Color" data-price="1100" onclick="updateTotal(this)">
+            Dashboard Color ($1,100)
+          </button>
         </div>
 
         <div>
+          <h3> Performance:</h3>
+          <button type="button" class="service-btn" data-service="Turbo" data-price="11000" onclick="updateTotal(this)">
+            Turbo ($11,000)
+          </button>
+        </div>
+
+        <div>
+          <h3> Services Added:</h3>
+          <ul id="serviceList" class="service-list"></ul>
+
           <h3> Cost:</h3>
-
           <label for="totalCost">Total Cost</label>
           <input type="text" id="totalCost" name="totalCost" readonly>
-
           <button type="button" onclick="copyToClipboard()">Copy To Clipboard</button>
           <button type="reset" onclick="clearTotal()">Clear All</button>
         </div>
+      </div>
     </form>
   </main>
 
   <script>
-    function updateTotal() {
-      const form = document.getElementById("marinaForm");
-      let total = 0;
+    let selectedServices = [];  // Array to track all selected services
 
-      for (const element of form.elements) {
-        if (element.type === "checkbox" && element.checked) {
-          total += parseFloat(element.value);
-        }
-      }
+    function updateTotal(button) {
+      const serviceName = button.getAttribute('data-service');
+      const price = parseFloat(button.getAttribute('data-price'));
+      
+      // Add the service to the list of selected services
+      selectedServices.push(serviceName);
+
+      // Update the services list in the UI
+      const serviceList = document.getElementById('serviceList');
+      const listItem = document.createElement('li');
+      listItem.textContent = `${serviceName} ($${price.toFixed(2)})`;
+      serviceList.appendChild(listItem);
+
+      // Update the total cost
+      let total = 0;
+      selectedServices.forEach(service => {
+        const button = Array.from(document.querySelectorAll('.service-btn'))
+                             .find(btn => btn.getAttribute('data-service') === service);
+        total += parseFloat(button.getAttribute('data-price'));
+      });
 
       document.getElementById("totalCost").value = `$${total.toFixed(2)}`;
     }
@@ -93,21 +111,20 @@
       const form = document.getElementById("marinaForm");
       let formData = "```";  // Start with triple backticks for Discord formatting
       let total = 0;
-      let selectedUpgrades = [];
 
-      // Get selected upgrades and calculate total
-      for (const element of form.elements) {
-        if (element.type === "checkbox" && element.checked) {
-          selectedUpgrades.push(element.labels[0].textContent.split(" ($")[0]);  // Add upgrade name only
-          total += parseFloat(element.value);
-        }
-      }
+      // Get selected services and calculate total
+      const selectedUpgrades = selectedServices;
+      selectedUpgrades.forEach(service => {
+        const button = Array.from(document.querySelectorAll('.service-btn'))
+                             .find(btn => btn.getAttribute('data-service') === service);
+        total += parseFloat(button.getAttribute('data-price'));
+      });
 
       // Get customer details
       const customerName = form.customerName.value.trim();
       const boatLic = form.boatLic.value.trim();
       const boatMakeModel = form.boatMakeModel.value.trim();
-      const shopName = "Tuners";  // Static shop name as requested
+      const shopName = "Oceanside Boat Shop";  // Shop name
 
       // Format the copied text
       formData += `Customer Name: ${customerName}\n`;
@@ -115,14 +132,21 @@
       formData += `Plate: ${boatLic}\n`;
       formData += `Upgrades Purchased: ${selectedUpgrades.length > 0 ? selectedUpgrades.join(", ") : "None"}\n`;
       formData += `Price Charged: $${total.toFixed(2)}\n`;
-      formData += `SHOP: Oceanside Boat Shop`;
+      formData += `SHOP: ${shopName}`;
       formData += "```";  // End with triple backticks
 
-      navigator.clipboard.writeText(formData)
+      navigator.clipboard.writeText(formData);
     }
 
     function clearTotal() {
       document.getElementById("totalCost").value = "$0.00";
+      selectedServices = [];
+      document.getElementById('serviceList').innerHTML = ''; // Clear the list
+
+      // Reset all button styles (optional if you want to reset button states)
+      document.querySelectorAll('.service-btn').forEach(button => {
+        button.style.backgroundColor = '';
+      });
     }
   </script>
 
